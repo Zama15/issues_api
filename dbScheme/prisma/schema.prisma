@@ -1,0 +1,271 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+
+  // provider = "sqlite"
+  // url      = env("DATABASE_URL_TEST")
+}
+
+model Users {
+  iIdUsers            Int      @id @default(autoincrement())
+  sFullNameUsers      String
+  iEnrollmentUsers    Int
+  sPasswordUser       String
+  sGender             String
+  sInstitutionalEmail String
+  sPhone              String
+  sLocation           String
+  bStateUsers         Boolean  @default(false)
+  dtCreatedAtUsers    DateTime @default(now())
+  dtUpdatedAtUsers    DateTime @updatedAt
+
+  // Added to not leave User_Types orphan. 
+  fkIdUserTypes Int?
+  userTypes     User_Types? @relation(fields: [fkIdUserTypes], references: [iIdUserTypes])
+
+  Careers            Careers[]
+  Groups             Groups[]
+  Course_Assignments Course_Assignments[]
+  userRegisterIssues Issues[]             @relation("UserRegister")
+  userReviewerIssues Issues[]             @relation("UserReviewer")
+  Issue_Culprits     Issue_Culprits[]
+  Issue_Affected     Issue_Affected[]
+}
+
+model User_Types {
+  iIdUserTypes         Int      @id @default(autoincrement())
+  sNameUserTypes       String
+  bStateUserTypes      Boolean  @default(false)
+  dtCreatedAtUserTypes DateTime @default(now())
+  dtUpdatedAtUserTypes DateTime @updatedAt
+
+  Users Users[]
+}
+
+model Issues {
+  iIdIssues         Int            @id @default(autoincrement())
+  tDate             DateTime
+  sIssueContent     String
+  eStatus           Issue_Statuses
+  bStateIssues      Boolean        @default(false)
+  dtCreatedAtIssues DateTime       @default(now())
+  dtUpdatedAtIssues DateTime       @updatedAt
+
+  fkIdIssueTypes   Int
+  issueTypes       Issue_Types @relation(fields: [fkIdIssueTypes], references: [iIdIssuesTypes])
+  fkIdSeverities   Int
+  severities       Severities  @relation(fields: [fkIdSeverities], references: [iIdSeverities])
+  fkIdClassrooms   Int
+  classrooms       Classrooms  @relation(fields: [fkIdClassrooms], references: [iIdClassrooms])
+  fkIdUserRegister Int
+  userRegister     Users       @relation("UserRegister", fields: [fkIdUserRegister], references: [iIdUsers])
+  fkIdUserReviewer Int
+  userReviewer     Users       @relation("UserReviewer", fields: [fkIdUserReviewer], references: [iIdUsers])
+
+  Issue_Culprits Issue_Culprits[]
+  Issue_Affected Issue_Affected[]
+}
+
+model Issue_Types {
+  iIdIssuesTypes          Int      @id @default(autoincrement())
+  sNameIssuesTypes        String
+  sDescriptionIssuesTypes String
+  bStateIssuesTypes       Boolean  @default(false)
+  dtCreatedAtIssuesTypes  DateTime @default(now())
+  dtUpdatedAtIssuesTypes  DateTime @updatedAt
+
+  Issues Issues[]
+}
+
+enum Issue_Statuses {
+  FOR_REVIEW
+  REVIEWED
+  CANCELLED
+}
+
+model Issue_Culprits {
+  fkIdIssues Int
+  fkIdUsers  Int
+
+  issues Issues @relation(fields: [fkIdIssues], references: [iIdIssues])
+  users  Users  @relation(fields: [fkIdUsers], references: [iIdUsers])
+
+  @@id([fkIdIssues, fkIdUsers])
+}
+
+model Issue_Affected {
+  fkIdIssues Int
+  fkIdUsers  Int
+
+  issues Issues @relation(fields: [fkIdIssues], references: [iIdIssues])
+  users  Users  @relation(fields: [fkIdUsers], references: [iIdUsers])
+
+  @@id([fkIdIssues, fkIdUsers])
+}
+
+model Classrooms {
+  iIdClassrooms         Int      @id @default(autoincrement())
+  sNameClasseooms       String
+  bStateClassrooms      Boolean  @default(false)
+  dtCreatedAtClassrooms DateTime @default(now())
+  dtUpdatedAtClassrooms DateTime @updatedAt
+
+  fkIdClassroomTypes Int
+  classroomTypes     Classroom_Types @relation(fields: [fkIdClassroomTypes], references: [iIdClassroomTypes])
+  fkIdGrades         Int
+  grades             Grades          @relation(fields: [fkIdGrades], references: [iIdGrades])
+  fkIdGroups         Int             @unique
+  groups             Groups          @relation(fields: [fkIdGroups], references: [iIdGroups])
+  // Was remove for redundancy.
+  // Groups already have a relation with Careers
+  // fkIdCareers        Int
+  // careers            Careers         @relation(fields: [fkIdCareers], references: [iIdCareers])
+  // Carrers already have a relation with Faculties
+  // fkIdFaculties      Int
+  // faculties          Faculties       @relation(fields: [fkIdFaculties], references: [iIdFaculties])
+
+  Schedules Schedules[]
+  Issues    Issues[]
+}
+
+model Classroom_Types {
+  iIdClassroomTypes         Int      @id @default(autoincrement())
+  sNameClassroomTypes       String
+  bStateClassroomTypes      Boolean  @default(false)
+  dtCreatedAtClassroomTypes DateTime @default(now())
+  dtUpdatedAtClassroomTypes DateTime @updatedAt
+
+  Classrooms Classrooms[]
+}
+
+model Careers {
+  iIdCareers         Int      @id @default(autoincrement())
+  sNameCareers       String
+  bStateCareers      Boolean  @default(false)
+  dtCreatedAtCareers DateTime @default(now())
+  dtUpdatedAtCareers DateTime @updatedAt
+
+  fkIdCareerCoord Int
+  CareerCoord     Users     @relation(fields: [fkIdCareerCoord], references: [iIdUsers])
+  fkIdFaculties   Int
+  faculties       Faculties @relation(fields: [fkIdFaculties], references: [iIdFaculties])
+
+  Groups Groups[]
+  // Classrooms Classrooms[]
+}
+
+model Grades {
+  iIdGrades         Int      @id @default(autoincrement())
+  sNameGrades       String
+  bStateGrades      Boolean  @default(false)
+  dtCreatedAtGrades DateTime @default(now())
+  dtUpdatedAtGrades DateTime @updatedAt
+
+  fkIdGroups Int
+  groups     Groups @relation(fields: [fkIdGroups], references: [iIdGroups])
+
+  Classrooms Classrooms[]
+}
+
+model Groups {
+  iIdGroups         Int      @id @default(autoincrement())
+  sNameGroups       String
+  bStateGroups      Boolean  @default(false)
+  dtCreatedAtGroups DateTime @default(now())
+  dtUpdatedAtGroups DateTime @updatedAt
+
+  fkIdCareers Int
+  careers     Careers @relation(fields: [fkIdCareers], references: [iIdCareers])
+  fkIdTutor   Int
+  tutor       Users   @relation(fields: [fkIdTutor], references: [iIdUsers])
+
+  Grades     Grades[]
+  Classrooms Classrooms[]
+}
+
+model Schedules {
+  iIdSchedules   Int      @id @default(autoincrement())
+  dtStartCourses DateTime
+  dtEndCourses   DateTime
+
+  fkIdCycles            Int
+  cycles                Cycles             @relation(fields: [fkIdCycles], references: [iIdCycles])
+  fkIdClassrooms        Int
+  classrooms            Classrooms         @relation(fields: [fkIdClassrooms], references: [iIdClassrooms])
+  fkIdCourseAssignments Int
+  couseAssignments      Course_Assignments @relation(fields: [fkIdCourseAssignments], references: [iIdCourseAssignments])
+}
+
+model Faculties {
+  iIdFaculties         Int      @id @default(autoincrement())
+  sNameFaculties       String
+  bStateFaculties      Boolean  @default(false)
+  dtCreatedAtFaculties DateTime @default(now())
+  dtUpdatedAtFaculties DateTime @updatedAt
+
+  Careers Careers[]
+  // Classrooms Classrooms[]
+}
+
+model Severities {
+  iIdSeverities         Int      @id @default(autoincrement())
+  sNameSeverities       String
+  bStateSeverities      Boolean  @default(false)
+  dtCreatedAtSeverities DateTime @default(now())
+  dtUpdatedAtSeverities DateTime @updatedAt
+
+  Issues Issues[]
+}
+
+model Cycles {
+  iIdCycles         Int      @id @default(autoincrement())
+  sNameCycles       String
+  bStateCycles      Boolean  @default(false)
+  dtCreatedAtCycles DateTime @default(now())
+  dtUpdatedAtCycles DateTime @updatedAt
+
+  Schedules Schedules[]
+}
+
+model Courses {
+  iIdCourses         Int      @id @default(autoincrement())
+  sNameCourses       String
+  bStateCourses      Boolean  @default(false)
+  dtCreatedAtCourses DateTime @default(now())
+  dtUpdatedAtCourses DateTime @updatedAt
+
+  Course_Assignments Course_Assignments[]
+}
+
+model Course_Assignments {
+  iIdCourseAssignments Int      @id @default(autoincrement())
+  iCourseTotalHours    Int
+  bStateCourses        Boolean  @default(false)
+  dtCreatedAtCourses   DateTime @default(now())
+  dtUpdatedAtCourses   DateTime @updatedAt
+
+  fkIdCourses   Int
+  courses       Courses @relation(fields: [fkIdCourses], references: [iIdCourses])
+  fkIdProfessor Int
+  professor     Users   @relation(fields: [fkIdProfessor], references: [iIdUsers])
+
+  Schedules Schedules[]
+}
+
+// model Issues_ {}
+// model Issues_ {}
+// model Issues_ {}
+// model Issues_ {}
+// model Issues_ {}
+// model Issues_ {}
