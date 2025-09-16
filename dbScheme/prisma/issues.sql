@@ -65,7 +65,7 @@ DROP TABLE IF EXISTS `Classrooms`;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `Classrooms` (
   `iIdClassrooms` int(11) NOT NULL AUTO_INCREMENT,
-  `sNameClasseooms` varchar(191) NOT NULL,
+  `sNameClassrooms` varchar(191) NOT NULL,
   `bStateClassrooms` tinyint(1) NOT NULL DEFAULT 0,
   `dtCreatedAtClassrooms` datetime(3) NOT NULL DEFAULT current_timestamp(3),
   `dtUpdatedAtClassrooms` datetime(3) NOT NULL,
