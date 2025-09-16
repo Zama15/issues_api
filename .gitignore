@@ -3,3 +3,6 @@
 .env
 
 /generated/prisma
+
+*.txt
+*.pdf

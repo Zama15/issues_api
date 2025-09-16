@@ -56,7 +56,7 @@ model User_Types {
 model Issues {
   iIdIssues         Int            @id @default(autoincrement())
   tDate             DateTime
-  sIssueContent     String
+  sIssueContent     String?
   eStatus           Issue_Statuses
   bStateIssues      Boolean        @default(false)
   dtCreatedAtIssues DateTime       @default(now())
@@ -75,6 +75,8 @@ model Issues {
 
   Issue_Culprits Issue_Culprits[]
   Issue_Affected Issue_Affected[]
+
+  @@index([sIssueContent])
 }
 
 model Issue_Types {
@@ -92,6 +94,7 @@ enum Issue_Statuses {
   FOR_REVIEW
   REVIEWED
   CANCELLED
+  RESOLVED
 }
 
 model Issue_Culprits {
@@ -116,7 +119,7 @@ model Issue_Affected {
 
 model Classrooms {
   iIdClassrooms         Int      @id @default(autoincrement())
-  sNameClasseooms       String
+  sNameClassrooms       String
   bStateClassrooms      Boolean  @default(false)
   dtCreatedAtClassrooms DateTime @default(now())
   dtUpdatedAtClassrooms DateTime @updatedAt

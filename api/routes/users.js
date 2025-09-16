@@ -18,10 +18,10 @@ const getUsers = (request, respose) => {
       sGender,
       sInstitutionalEmail,
       sPhone,
-      sLocation,
+      sLocation
     FROM Users
     WHERE
-      bStateUsers = FALSE`,
+      bStateUsers = TRUE`,
     (error, results) => {
       if (error) throw error;
 
@@ -38,6 +38,7 @@ const getUsers = (request, respose) => {
 
 const getUserById = (request, response) => {
   const id = request.params.id;
+
   connection.query(
     `SELECT
       iIdUsers,
@@ -46,7 +47,7 @@ const getUserById = (request, response) => {
       sGender,
       sInstitutionalEmail,
       sPhone,
-      sLocation,
+      sLocation
     FROM Users
     WHERE
       iIdUsers = ?`,
@@ -180,7 +181,7 @@ const deleteUser = async (request, response) => {
         bStateUsers = ?,
         dtUpdatedAtUsers = ?
       WHERE iIdUsers = ?`,
-      [true, now, iIdUsers],
+      [false, now, iIdUsers],
       (error, results) => {
         if (error) throw error;
 
@@ -194,10 +195,144 @@ const deleteUser = async (request, response) => {
   }
 };
 
+const getUsersSP = (request, response) => {
+  connection.query("CALL getAllUsers()", (error, results) => {
+    if (error) throw error;
+
+    if (results.lenght === 0) {
+      return respose
+        .status(404)
+        .json({ mensaje: "No hay informacion registrada" });
+    }
+
+    response.status(200).json(results[0]);
+  });
+};
+
+const getUserByIdSP = (request, response) => {
+  const id = request.params.id;
+
+  connection.query(`CALL getUserById(?)`, [id], (error, result) => {
+    if (error) throw error;
+
+    if (result[0].lenght === 0) {
+      return response.status(404).json({ mensaje: "Usuario no encontrado" });
+    }
+
+    response.status(200).json(result[0][0]);
+  });
+};
+
+const postUserSP = async (request, response) => {
+  try {
+    const {
+      sFullNameUsers,
+      iEnrollmentUsers,
+      sPasswordUser,
+      sGender,
+      sInstitutionalEmail,
+      sPhone,
+      sLocation,
+    } = request.body;
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(sPasswordUser, saltRounds);
+
+    connection.query(
+      `CALL insertUser(?,?,?,?,?,?,?)`,
+      [
+        sFullNameUsers,
+        iEnrollmentUsers,
+        hashedPassword,
+        sGender,
+        sInstitutionalEmail,
+        sPhone,
+        sLocation,
+      ],
+      (error, result) => {
+        if (error) throw error;
+
+        response
+          .status(201)
+          .json({ "Usuario agregado correctamente": result.affectedRows });
+      }
+    );
+  } catch (error) {
+    console.error("Error al insertar usuario", error);
+  }
+};
+
+const putUserSP = async (request, response) => {
+  try {
+    const iIdUsers = request.params.id;
+
+    const {
+      sFullNameUsers,
+      iEnrollmentUsers,
+      sPasswordUser,
+      sGender,
+      sInstitutionalEmail,
+      sPhone,
+      sLocation,
+    } = request.body;
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(sPasswordUser, saltRounds);
+
+    connection.query(
+      `CALL updateUser(?,?,?,?,?,?,?,?)`,
+      [
+        iIdUsers,
+        sFullNameUsers,
+        iEnrollmentUsers,
+        hashedPassword,
+        sGender,
+        sInstitutionalEmail,
+        sPhone,
+        sLocation,
+      ],
+      (error, result) => {
+        if (error) throw error;
+
+        response.status(200).json({
+          "Usuario actualizado correctamente": result.affectedRows,
+        });
+      }
+    );
+  } catch (error) {
+    console.error("Error al actualizar el usuario", error);
+  }
+};
+
+const deleteUserSP = async (request, response) => {
+  try {
+    const iIdUsers = request.params.id;
+
+    connection.query(`CALL deleteUser(?)`, [iIdUsers], (error, result) => {
+      if (error) throw error;
+
+      response
+        .status(200)
+        .json({ "Usuario eliminado correctamente": result.affectedRows });
+    });
+  } catch (error) {
+    console.error("Error al actualizar el usuario", error);
+  }
+};
+
 app.route("/users").get(getUsers);
+app.route("/sp/users").get(getUsersSP);
+
 app.route("/users/:id").get(getUserById);
+app.route("/sp/users/:id").get(getUserByIdSP);
+
 app.route("/users").post(postUser);
+app.route("/sp/users").post(postUserSP);
+
 app.route("/users/:id").put(putUser);
+app.route("/sp/users/:id").put(putUserSP);
+
 app.route("/users/:id").delete(deleteUser);
+app.route("/sp/users/:id").delete(deleteUserSP);
 
 module.exports = app;
