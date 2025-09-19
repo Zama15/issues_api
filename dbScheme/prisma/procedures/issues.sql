@@ -104,10 +104,10 @@ BEGIN
 END $$
 DELIMITER ;
 SELECT * FROM Issues i ;
-CALL updateIssueContentById(1, NULL);
-CALL updateIssueContentById(6, NULL);
-CALL updateIssueContentById(9, " ");
-CALL updateIssueContentById(13, "");
+-- CALL updateIssueContentById(1, NULL);
+-- CALL updateIssueContentById(6, NULL);
+-- CALL updateIssueContentById(9, " ");
+-- CALL updateIssueContentById(13, "");
 -- ================ COUNT ISSUES WITHOUT CONTENT ================
 DROP PROCEDURE IF EXISTS countIssuesWithoutContent;
 DELIMITER $$
@@ -152,8 +152,8 @@ BEGIN
       eStatus = "CANCELLED";
 END $$
 DELIMITER ;
-SELECT * FROM Issues i ;
-CALL deleteCancelledIssues();
+-- SELECT * FROM Issues i ;
+-- CALL deleteCancelledIssues();
 -- ================ UPDATE OLD FOR_REVIEW ISSUES TO CANCELLED ================
 DROP PROCEDURE IF EXISTS updateOldForReviewIssuesToCancelled;
 DELIMITER $$
@@ -169,9 +169,9 @@ BEGIN
 	  DATEDIFF(NOW(), tDate) >= 365;
 END $$
 DELIMITER ;
-SELECT * FROM Issues i ;
-CALL updateOldForReviewIssuesToCancelled();
-SELECT * FROM Issues i ;
+-- SELECT * FROM Issues i ;
+-- CALL updateOldForReviewIssuesToCancelled();
+-- SELECT * FROM Issues i ;
 -- ================ GET ISSUES ORDER BY DATE DESC ================
 DROP PROCEDURE IF EXISTS getIssuesOrderByDate;
 DELIMITER $$

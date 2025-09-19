@@ -10,7 +10,7 @@
  *   - `bStateUsers` can't be updated using this SP
  * - deleteUser: Delete a User by its id
  *   - Internally a PATCH is made
- *   - Update `bStateUsers` to TRUE
+ *   - Update `bStateUsers` to FALSE
  */
 
 -- ================ GET ALL ================
@@ -112,8 +112,8 @@ BEGIN
         iIdUsers = pIdUsers;
 END $$
 DELIMITER ;
-CALL updateUser(1, CONCAT('Alice Admin (', NOW(), ')'), 1000, "password123", "F", "alice.admin@uni.edu", "+5215550001000", "Main campus");
-CALL getAllUsers();
+-- CALL updateUser(1, CONCAT('Alice Admin (', NOW(), ')'), 1000, "password123", "F", "alice.admin@uni.edu", "+5215550001000", "Main campus");
+-- CALL getAllUsers();
 -- ================ DELETE ================
 DROP PROCEDURE IF EXISTS deleteUser;
 DELIMITER $$
@@ -129,5 +129,5 @@ BEGIN
       iIdUsers = pIdUsers;
 END $$
 DELIMITER ;
-CALL deleteUser(1);
-CALL getAllUsers();
+-- CALL deleteUser(1);
+-- CALL getAllUsers();
