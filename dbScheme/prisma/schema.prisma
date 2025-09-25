@@ -27,6 +27,7 @@ model Users {
   sPhone              String
   sLocation           String
   bStateUsers         Boolean  @default(false)
+  iIssuesCulpritCount Int      @default(0) // Manage by triggers
   dtCreatedAtUsers    DateTime @default(now())
   dtUpdatedAtUsers    DateTime @updatedAt
 
@@ -41,6 +42,8 @@ model Users {
   userReviewerIssues Issues[]             @relation("UserReviewer")
   Issue_Culprits     Issue_Culprits[]
   Issue_Affected     Issue_Affected[]
+  History_Logs       History_Logs[]
+  Issues_Backup      Issues_Backup[]
 }
 
 model User_Types {
@@ -77,6 +80,24 @@ model Issues {
   Issue_Affected Issue_Affected[]
 
   @@index([sIssueContent])
+}
+
+model Issues_Backup {
+  iIdIssuesBackup Int            @id @default(autoincrement())
+  tDate           DateTime
+  sIssueContent   String?
+  eStatus         Issue_Statuses
+  dtDeletedAt     DateTime       @default(now())
+
+  iIdOriginalIssue Int
+  fkIdIssueTypes   Int
+  fkIdSeverities   Int
+  fkIdClassrooms   Int
+  fkIdUserRegister Int
+  fkIdUserReviewer Int
+
+  fkIdDeletedBy Int?
+  user          Users? @relation(fields: [fkIdDeletedBy], references: [iIdUsers])
 }
 
 model Issue_Types {
@@ -272,3 +293,21 @@ model Course_Assignments {
 // model Issues_ {}
 // model Issues_ {}
 // model Issues_ {}
+
+model History_Logs {
+  iIdHistoryLogs Int        @id @default(autoincrement())
+  dtLogTime      DateTime   @default(now())
+  sTableName     String
+  iRecordId      Int
+  eActionType    ActionType
+  tDetails       String?    @db.Text
+
+  fkIdPerformedBy Int?
+  user            Users? @relation(fields: [fkIdPerformedBy], references: [iIdUsers])
+}
+
+enum ActionType {
+  CREATE
+  UPDATE
+  DELETE
+}

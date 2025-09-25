@@ -1,4 +1,4 @@
-# 📄 Funciones SQL de Incidencias
+# Funciones SQL de Incidencias
 
 ## `fnEmailExist`
 
