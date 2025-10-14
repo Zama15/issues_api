@@ -1,0 +1,475 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// >> PHYSICAL LOCATION TABLES
+// -----------------------------------------------------------------------------
+
+model LibraryBranch {
+  id             Int      @id @default(autoincrement()) @map("int_library_branch_id") @db.UnsignedInt
+  name           String   @unique @map("str_name")
+  campusLocation String?  @map("str_campus_location")
+  address        String?  @map("str_address") @db.Text
+  isActive       Boolean  @default(true) @map("bool_is_active")
+  createdAt      DateTime @default(now()) @map("dt_created_at")
+  updatedAt      DateTime @updatedAt @map("dt_updated_at")
+
+  @@map("LIBRARY_BRANCHES")
+}
+
+model Department {
+  id        Int      @id @default(autoincrement()) @map("int_department_id") @db.UnsignedInt
+  name      String   @unique @map("str_name")
+  isActive  Boolean  @default(true) @map("bool_is_active")
+  createdAt DateTime @default(now()) @map("dt_created_at")
+  updatedAt DateTime @updatedAt @map("dt_updated_at")
+
+  @@map("DEPARTMENTS")
+}
+
+// -----------------------------------------------------------------------------
+// >> CATALOG TABLES (STANDALONE)
+// -----------------------------------------------------------------------------
+
+model Publisher {
+  id          Int      @id @default(autoincrement()) @map("int_publisher_id") @db.UnsignedInt
+  name        String   @unique @map("str_name")
+  address     String?  @map("str_address") @db.Text
+  contactInfo String?  @map("str_contact_info")
+  isActive    Boolean  @default(true) @map("bool_is_active")
+  createdAt   DateTime @default(now()) @map("dt_created_at")
+  updatedAt   DateTime @updatedAt @map("dt_updated_at")
+
+  items Item[]
+
+  @@map("PUBLISHERS")
+}
+
+model Author {
+  id        Int       @id @default(autoincrement()) @map("int_author_id") @db.UnsignedInt
+  firstName String    @map("str_first_name") @db.VarChar(100)
+  lastName  String    @map("str_last_name") @db.VarChar(100)
+  birthDate DateTime? @map("dt_birth_date") @db.Date
+  biography String?   @map("str_biography") @db.Text
+  isActive  Boolean   @default(true) @map("bool_is_active")
+  createdAt DateTime  @default(now()) @map("dt_created_at")
+  updatedAt DateTime  @updatedAt @map("dt_updated_at")
+
+  itemAuthors ItemAuthor[]
+
+  @@map("AUTHORS")
+}
+
+model Subject {
+  id        Int      @id @default(autoincrement()) @map("int_subject_id") @db.UnsignedInt
+  name      String   @map("str_name")
+  code      String?  @map("str_code") @db.VarChar(50)
+  scheme    String?  @map("str_scheme") @db.VarChar(50)
+  isActive  Boolean  @default(true) @map("bool_is_active")
+  createdAt DateTime @default(now()) @map("dt_created_at")
+  updatedAt DateTime @updatedAt @map("dt_updated_at")
+
+  itemSubjects ItemSubject[]
+
+  @@map("SUBJECTS")
+}
+
+model Series {
+  id          Int      @id @default(autoincrement()) @map("int_series_id") @db.UnsignedInt
+  name        String   @unique @map("str_name")
+  description String?  @map("str_description") @db.Text
+  isActive    Boolean  @default(true) @map("bool_is_active")
+  createdAt   DateTime @default(now()) @map("dt_created_at")
+  updatedAt   DateTime @updatedAt @map("dt_updated_at")
+
+  items Item[]
+
+  @@map("SERIES")
+}
+
+model Language {
+  id        Int      @id @default(autoincrement()) @map("int_language_id") @db.UnsignedInt
+  name      String   @unique @map("str_name") @db.VarChar(100)
+  isoCode   String?  @unique @map("str_iso_code") @db.Char(3)
+  isActive  Boolean  @default(true) @map("bool_is_active")
+  createdAt DateTime @default(now()) @map("dt_created_at")
+  updatedAt DateTime @updatedAt @map("dt_updated_at")
+
+  items Item[]
+
+  @@map("LANGUAGES")
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement()) @map("int_permission_id") @db.UnsignedInt
+  name        String   @unique @map("str_name") @db.VarChar(100)
+  description String?  @map("str_description") @db.Text
+  isActive    Boolean  @default(true) @map("bool_is_active")
+  createdAt   DateTime @default(now()) @map("dt_created_at")
+  updatedAt   DateTime @updatedAt @map("dt_updated_at")
+
+  staffRolePermissions StaffRolePermission[]
+
+  @@map("PERMISSIONS")
+}
+
+// -----------------------------------------------------------------------------
+// >> ITEM TABLES
+// -----------------------------------------------------------------------------
+
+model Item {
+  id               Int      @id @default(autoincrement()) @map("int_item_id") @db.UnsignedInt
+  title            String   @map("str_title")
+  publisherId      Int?     @map("int_publisher_id") @db.UnsignedInt
+  publicationDate  Int?     @map("dt_publication_date") @db.Year
+  edition          String?  @map("str_edition") @db.VarChar(50)
+  isbn             String?  @unique @map("str_isbn") @db.VarChar(13)
+  issn             String?  @unique @map("str_issn") @db.VarChar(9)
+  deweyDecimalCode String?  @map("str_dewey_decimal_code") @db.VarChar(20)
+  itemTypeId       Int      @map("int_item_type_id") @db.UnsignedInt
+  seriesId         Int?     @map("int_series_id") @db.UnsignedInt
+  languageId       Int      @map("int_language_id") @db.UnsignedInt
+  description      String?  @map("str_description") @db.Text
+  tableOfContents  Json?    @map("json_table_of_contents")
+  isActive         Boolean  @default(true) @map("bool_is_active")
+  createdAt        DateTime @default(now()) @map("dt_created_at")
+  updatedAt        DateTime @updatedAt @map("dt_updated_at")
+
+  publisher Publisher? @relation(fields: [publisherId], references: [id], onDelete: SetNull)
+  itemType  ItemType   @relation(fields: [itemTypeId], references: [id], onDelete: Restrict)
+  series    Series?    @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  language  Language   @relation(fields: [languageId], references: [id], onDelete: Restrict)
+
+  itemAuthors      ItemAuthor[]
+  itemSubjects     ItemSubject[]
+  itemCopies       ItemCopy[]
+  digitalResources DigitalResource[]
+  reservations     Reservation[]
+
+  @@map("ITEMS")
+}
+
+model ItemCopy {
+  id            Int       @id @default(autoincrement()) @map("int_item_copy_id") @db.UnsignedInt
+  itemId        Int       @map("int_item_id") @db.UnsignedInt
+  barcode       String    @unique @map("str_barcode") @db.VarChar(50)
+  copyStatusId  Int       @map("int_copy_status_id") @db.UnsignedInt
+  locationInfo  String?   @map("str_location_info")
+  dateAcquired  DateTime? @map("dt_date_acquired") @db.Date
+  purchasePrice Decimal?  @map("dec_purchase_price") @db.Decimal(10, 2)
+  isActive      Boolean   @default(true) @map("bool_is_active")
+  createdAt     DateTime  @default(now()) @map("dt_created_at")
+  updatedAt     DateTime  @updatedAt @map("dt_updated_at")
+
+  item       Item       @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  copyStatus CopyStatus @relation(fields: [copyStatusId], references: [id], onDelete: Restrict)
+
+  loans Loan[]
+
+  @@map("ITEM_COPIES")
+}
+
+model DigitalResource {
+  id             Int      @id @default(autoincrement()) @map("int_digital_resource_id") @db.UnsignedInt
+  itemId         Int      @map("int_item_id") @db.UnsignedInt
+  viewUrl        String?  @map("str_view_url") @db.VarChar(2083)
+  isDownloadable Boolean  @default(false) @map("bool_is_downloadable")
+  downloadUrl    String?  @map("str_download_url") @db.VarChar(2083)
+  fileFormat     String?  @map("str_file_format") @db.VarChar(10)
+  fileSizeInKb   Int?     @map("int_file_size_in_kb") @db.UnsignedInt
+  accessType     String?  @map("str_access_type") @db.VarChar(50)
+  isActive       Boolean  @default(true) @map("bool_is_active")
+  createdAt      DateTime @default(now()) @map("dt_created_at")
+  updatedAt      DateTime @updatedAt @map("dt_updated_at")
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@map("DIGITAL_RESOURCES")
+}
+
+// -----------------------------------------------------------------------------
+// >> PEOPLE TABLES
+// -----------------------------------------------------------------------------
+
+model Patron {
+  id                    Int       @id @default(autoincrement()) @map("int_patron_id") @db.UnsignedInt
+  universityId          Int       @unique @map("int_university_id") @db.UnsignedInt
+  firstName             String    @map("str_first_name") @db.VarChar(100)
+  lastName              String    @map("str_last_name") @db.VarChar(100)
+  email                 String    @unique @map("str_email")
+  phoneNumber           String?   @map("str_phone_number") @db.VarChar(20)
+  patronTypeId          Int       @map("int_patron_type_id") @db.UnsignedInt
+  patronAccountStatusId Int       @map("int_patron_account_status_id") @db.UnsignedInt
+  registrationDate      DateTime  @map("dt_registration_date") @db.Date
+  expiryDate            DateTime? @map("dt_expiry_date") @db.Date
+  isActive              Boolean   @default(true) @map("bool_is_active")
+  createdAt             DateTime  @default(now()) @map("dt_created_at")
+  updatedAt             DateTime  @updatedAt @map("dt_updated_at")
+
+  patronType          PatronType          @relation(fields: [patronTypeId], references: [id], onDelete: Restrict)
+  patronAccountStatus PatronAccountStatus @relation(fields: [patronAccountStatusId], references: [id], onDelete: Restrict)
+
+  reservations Reservation[]
+  loans        Loan[]
+  fines        Fine[]
+  payments     Payment[]
+
+  @@map("PATRONS")
+}
+
+model Staff {
+  id           Int      @id @default(autoincrement()) @map("int_staff_id") @db.UnsignedInt
+  universityId Int      @unique @map("int_university_id") @db.UnsignedInt
+  firstName    String   @map("str_first_name") @db.VarChar(100)
+  lastName     String   @map("str_last_name") @db.VarChar(100)
+  email        String   @unique @map("str_email")
+  staffRoleId  Int      @map("int_staff_role_id") @db.UnsignedInt
+  isActive     Boolean  @default(true) @map("bool_is_active")
+  createdAt    DateTime @default(now()) @map("dt_created_at")
+  updatedAt    DateTime @updatedAt @map("dt_updated_at")
+
+  staffRole StaffRole @relation(fields: [staffRoleId], references: [id], onDelete: Restrict)
+
+  loansCheckedOut   Loan[]     @relation("CheckoutStaff")
+  loansCheckedIn    Loan[]     @relation("CheckinStaff")
+  paymentsProcessed Payment[]
+  auditLogs         AuditLog[]
+
+  @@map("STAFF")
+}
+
+// -----------------------------------------------------------------------------
+// >> ACTION TABLES
+// -----------------------------------------------------------------------------
+
+model Reservation {
+  id                   Int       @id @default(autoincrement()) @map("int_reservation_id") @db.UnsignedInt
+  itemId               Int       @map("int_item_id") @db.UnsignedInt
+  patronId             Int       @map("int_patron_id") @db.UnsignedInt
+  reservationDate      DateTime  @default(now()) @map("dt_reservation_date")
+  status               String    @map("str_status") @db.VarChar(50)
+  notificationSentDate DateTime? @map("dt_notification_sent_date")
+  isActive             Boolean   @default(true) @map("bool_is_active")
+  createdAt            DateTime  @default(now()) @map("dt_created_at")
+  updatedAt            DateTime  @updatedAt @map("dt_updated_at")
+
+  item   Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  patron Patron @relation(fields: [patronId], references: [id], onDelete: Cascade)
+
+  @@map("RESERVATIONS")
+}
+
+model Loan {
+  id              Int       @id @default(autoincrement()) @map("int_loan_id") @db.UnsignedInt
+  itemCopyId      Int       @map("int_item_copy_id") @db.UnsignedInt
+  patronId        Int       @map("int_patron_id") @db.UnsignedInt
+  checkoutDate    DateTime  @map("dt_checkout_date")
+  dueDate         DateTime  @map("dt_due_date")
+  returnDate      DateTime? @map("dt_return_date")
+  renewalsCount   Int       @default(0) @map("int_renewals_count") @db.UnsignedTinyInt
+  checkoutStaffId Int       @map("int_checkout_staff_id") @db.UnsignedInt
+  checkinStaffId  Int?      @map("int_checkin_staff_id") @db.UnsignedInt
+  isActive        Boolean   @default(true) @map("bool_is_active")
+  createdAt       DateTime  @default(now()) @map("dt_created_at")
+  updatedAt       DateTime  @updatedAt @map("dt_updated_at")
+
+  itemCopy      ItemCopy @relation(fields: [itemCopyId], references: [id], onDelete: Restrict)
+  patron        Patron   @relation(fields: [patronId], references: [id], onDelete: Restrict)
+  checkoutStaff Staff    @relation("CheckoutStaff", fields: [checkoutStaffId], references: [id], onDelete: Restrict)
+  checkinStaff  Staff?   @relation("CheckinStaff", fields: [checkinStaffId], references: [id], onDelete: Restrict)
+
+  fine Fine? // 1:1
+
+  @@map("LOANS")
+}
+
+model Fine {
+  id         Int      @id @default(autoincrement()) @map("int_fine_id") @db.UnsignedInt
+  loanId     Int      @unique @map("int_loan_id") @db.UnsignedInt // unique cuz 1:1
+  patronId   Int      @map("int_patron_id") @db.UnsignedInt
+  amount     Decimal  @map("dec_amount") @db.Decimal(10, 2)
+  reason     String?  @map("str_reason")
+  dateIssued DateTime @map("dt_date_issued") @db.Date
+  status     String   @map("str_status") @db.VarChar(50)
+  isActive   Boolean  @default(true) @map("bool_is_active")
+  createdAt  DateTime @default(now()) @map("dt_created_at")
+  updatedAt  DateTime @updatedAt @map("dt_updated_at")
+
+  loan   Loan   @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  patron Patron @relation(fields: [patronId], references: [id], onDelete: Cascade)
+
+  payments Payment[]
+
+  @@map("FINES")
+}
+
+model Payment {
+  id                 Int      @id @default(autoincrement()) @map("int_payment_id") @db.UnsignedInt
+  fineId             Int      @map("int_fine_id") @db.UnsignedInt
+  patronId           Int      @map("int_patron_id") @db.UnsignedInt
+  amountPaid         Decimal  @map("dec_amount_paid") @db.Decimal(10, 2)
+  paymentDate        DateTime @map("dt_payment_date")
+  paymentMethod      String?  @map("str_payment_method") @db.VarChar(50)
+  processedByStaffId Int      @map("int_processed_by_staff_id") @db.UnsignedInt
+  isActive           Boolean  @default(true) @map("bool_is_active")
+  createdAt          DateTime @default(now()) @map("dt_created_at")
+  updatedAt          DateTime @updatedAt @map("dt_updated_at")
+
+  fine             Fine   @relation(fields: [fineId], references: [id], onDelete: Restrict)
+  patron           Patron @relation(fields: [patronId], references: [id], onDelete: Restrict)
+  processedByStaff Staff  @relation(fields: [processedByStaffId], references: [id], onDelete: Restrict)
+
+  @@map("PAYMENTS")
+}
+
+// -----------------------------------------------------------------------------
+// >> LINK & SUPPORTING TABLES
+// -----------------------------------------------------------------------------
+
+model ItemAuthor {
+  itemId    Int      @map("int_item_id") @db.UnsignedInt
+  authorId  Int      @map("int_author_id") @db.UnsignedInt
+  createdAt DateTime @default(now()) @map("dt_created_at")
+
+  item   Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  author Author @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, authorId])
+  @@map("ITEM_AUTHORS")
+}
+
+model ItemSubject {
+  itemId    Int      @map("int_item_id") @db.UnsignedInt
+  subjectId Int      @map("int_subject_id") @db.UnsignedInt
+  createdAt DateTime @default(now()) @map("dt_created_at")
+
+  item    Item    @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  subject Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, subjectId])
+  @@map("ITEM_SUBJECTS")
+}
+
+model ItemType {
+  id        Int      @id @default(autoincrement()) @map("int_item_type_id") @db.UnsignedInt
+  name      String   @unique @map("str_name") @db.VarChar(100)
+  isActive  Boolean  @default(true) @map("bool_is_active")
+  createdAt DateTime @default(now()) @map("dt_created_at")
+  updatedAt DateTime @updatedAt @map("dt_updated_at")
+
+  items Item[]
+
+  @@map("ITEM_TYPES")
+}
+
+model CopyStatus {
+  id        Int      @id @default(autoincrement()) @map("int_copy_status_id") @db.UnsignedInt
+  name      String   @unique @map("str_name") @db.VarChar(50)
+  isActive  Boolean  @default(true) @map("bool_is_active")
+  createdAt DateTime @default(now()) @map("dt_created_at")
+  updatedAt DateTime @updatedAt @map("dt_updated_at")
+
+  itemCopies ItemCopy[]
+
+  @@map("COPY_STATUSES")
+}
+
+model PatronType {
+  id               Int      @id @default(autoincrement()) @map("int_patron_type_id") @db.UnsignedInt
+  name             String   @unique @map("str_name") @db.VarChar(50)
+  loanLimit        Int?     @map("int_loan_limit") @db.UnsignedInt
+  loanDurationDays Int?     @map("int_loan_duration_days") @db.UnsignedInt
+  isActive         Boolean  @default(true) @map("bool_is_active")
+  createdAt        DateTime @default(now()) @map("dt_created_at")
+  updatedAt        DateTime @updatedAt @map("dt_updated_at")
+
+  patrons Patron[]
+
+  @@map("PATRON_TYPES")
+}
+
+model PatronAccountStatus {
+  id          Int      @id @default(autoincrement()) @map("int_patron_account_status_id") @db.UnsignedInt
+  name        String   @unique @map("str_name") @db.VarChar(50)
+  description String?  @map("str_description") @db.Text
+  isActive    Boolean  @default(true) @map("bool_is_active")
+  createdAt   DateTime @default(now()) @map("dt_created_at")
+  updatedAt   DateTime @updatedAt @map("dt_updated_at")
+
+  patrons Patron[]
+
+  @@map("PATRON_ACCOUNT_STATUSES")
+}
+
+model StaffRole {
+  id          Int      @id @default(autoincrement()) @map("int_staff_role_id") @db.UnsignedInt
+  name        String   @unique @map("str_name") @db.VarChar(50)
+  description String?  @map("str_description") @db.Text
+  isActive    Boolean  @default(true) @map("bool_is_active")
+  createdAt   DateTime @default(now()) @map("dt_created_at")
+  updatedAt   DateTime @updatedAt @map("dt_updated_at")
+
+  staff                Staff[]
+  staffRolePermissions StaffRolePermission[]
+
+  @@map("STAFF_ROLES")
+}
+
+model StaffRolePermission {
+  staffRoleId  Int      @map("int_staff_role_id") @db.UnsignedInt
+  permissionId Int      @map("int_permission_id") @db.UnsignedInt
+  createdAt    DateTime @default(now()) @map("dt_created_at")
+
+  staffRole  StaffRole  @relation(fields: [staffRoleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([staffRoleId, permissionId])
+  @@map("STAFF_ROLE_PERMISSIONS")
+}
+
+// -----------------------------------------------------------------------------
+// >> AUDIT & HISTORY TABLES
+// -----------------------------------------------------------------------------
+
+model LoanHistory {
+  id              Int       @id @default(autoincrement()) @map("int_loan_history_id") @db.UnsignedInt
+  loanId          Int       @map("int_loan_id") @db.UnsignedInt
+  itemCopyId      Int       @map("int_item_copy_id") @db.UnsignedInt
+  patronId        Int       @map("int_patron_id") @db.UnsignedInt
+  checkoutDate    DateTime  @map("dt_checkout_date")
+  dueDate         DateTime  @map("dt_due_date")
+  returnDate      DateTime? @map("dt_return_date")
+  renewalsCount   Int       @default(0) @map("int_renewals_count") @db.UnsignedTinyInt
+  checkoutStaffId Int       @map("int_checkout_staff_id") @db.UnsignedInt
+  checkinStaffId  Int?      @map("int_checkin_staff_id") @db.UnsignedInt
+  archivedAt      DateTime  @default(now()) @map("dt_archived_at")
+
+  @@map("LOAN_HISTORY")
+}
+
+model AuditLog {
+  id        BigInt   @id @default(autoincrement()) @map("bigint_audit_log_id") @db.UnsignedBigInt
+  staffId   Int?     @map("int_staff_id") @db.UnsignedInt
+  action    String   @map("str_action") @db.VarChar(50)
+  tableName String   @map("str_table_name") @db.VarChar(100)
+  recordPk  Int?     @map("int_record_pk") @db.UnsignedInt
+  oldData   Json?    @map("json_old_data")
+  newData   Json?    @map("json_new_data")
+  timestamp DateTime @default(now()) @map("dt_timestamp")
+
+  staff Staff? @relation(fields: [staffId], references: [id], onDelete: SetNull)
+
+  @@map("AUDIT_LOGS")
+}

@@ -1,0 +1,23 @@
+{
+  "name": "library-db",
+  "version": "1.0.0",
+  "description": "Digital library for a university",
+  "main": "index.js",
+  "scripts": {
+    "db:push": "npx prisma db push --force-reset",
+    "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' seed/seed.ts"
+  },
+  "author": "Zama15",
+  "license": "ISC",
+  "devDependencies": {
+    "@faker-js/faker": "^10.0.0",
+    "@types/node": "^24.7.2",
+    "dotenv-cli": "^10.0.0",
+    "prisma": "^6.17.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.17.1"
+  }
+}
